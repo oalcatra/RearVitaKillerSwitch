@@ -11,27 +11,17 @@ endif()
 project(RearVitaKillerSwitch C)
 include("$ENV{VITASDK}/share/vita.cmake" REQUIRED)
 
-set(VITA_APP_NAME "RearVitaKillerSwitch")
-set(VITA_VERSION "01.00")
+add_executable(RearVitaKillerSwitch main.c)
+set_property(TARGET RearVitaKillerSwitch PROPERTY C_STANDARD 11)
+set_property(TARGET RearVitaKillerSwitch PROPERTY C_EXTENSIONS ON)
+target_link_libraries(RearVitaKillerSwitch taihen_stub SceTouch_stub SceCtrl_stub SceLibKernel_stub)
+set_target_properties(RearVitaKillerSwitch PROPERTIES LINK_FLAGS "-nostdlib")
+vita_create_self(RearVitaKillerSwitch.suprx RearVitaKillerSwitch UNSAFE CONFIG ${CMAKE_SOURCE_DIR}/exports.yml)
 
-add_executable(${PROJECT_NAME}
-  main.c
-)
-
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD_REQUIRED ON)
-set_property(TARGET ${PROJECT_NAME} PROPERTY C_EXTENSIONS ON)
-
-target_link_libraries(${PROJECT_NAME}
-  taihen_stub
-  SceTouch_stub
-  SceCtrl_stub
-  SceLibKernel_stub
-)
-
-set_target_properties(${PROJECT_NAME} PROPERTIES LINK_FLAGS "-nostdlib")
-
-vita_create_self(${PROJECT_NAME}.suprx ${PROJECT_NAME}
-  UNSAFE
-  CONFIG ${CMAKE_SOURCE_DIR}/exports.yml
-)
+add_executable(RearVitaKillerSwitchKernel kernel.c)
+set_property(TARGET RearVitaKillerSwitchKernel PROPERTY C_STANDARD 11)
+set_property(TARGET RearVitaKillerSwitchKernel PROPERTY C_EXTENSIONS ON)
+target_link_libraries(RearVitaKillerSwitchKernel k gcc taihenForKernel_stub SceSysmemForDriver_stub SceThreadmgrForDriver_stub)
+set_target_properties(RearVitaKillerSwitchKernel PROPERTIES LINK_FLAGS "-nostdlib" COMPILE_FLAGS "-D__VITA_KERNEL__")
+vita_create_self(RearVitaKillerSwitchKernel.skprx RearVitaKillerSwitchKernel UNSAFE CONFIG ${CMAKE_SOURCE_DIR}/kernel_exports.yml)
+vita_create_stubs(RearVitaKernelStubs RearVitaKillerSwitchKernel ${CMAKE_SOURCE_DIR}/kernel_exports.yml KERNEL)
