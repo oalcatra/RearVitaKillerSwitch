@@ -18,6 +18,13 @@ add_executable(${PROJECT_NAME}
   main.c
 )
 
+# taiHEN's TAI_CONTINUE macro relies on the pre-C23 behavior of an
+# unprototyped function pointer. GCC 15 defaults to GNU C23, so force
+# GNU C11 for compatibility with taiHEN.
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD 11)
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_STANDARD_REQUIRED ON)
+set_property(TARGET ${PROJECT_NAME} PROPERTY C_EXTENSIONS ON)
+
 target_link_libraries(${PROJECT_NAME}
   taihen_stub
   SceTouch_stub
