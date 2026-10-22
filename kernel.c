@@ -20,10 +20,17 @@ static int ksceCtrlPeekBufferPositive2_patched(int port, SceCtrlData *pad_data, 
 
     if (ret > 0 && pad_data) {
         for (int i = 0; i < ret; i++) {
-            if (pad_data[i].buttons & SCE_CTRL_VOLDOWN)
+            unsigned int buttons = pad_data[i].buttons;
+
+            if (buttons & SCE_CTRL_VOLDOWN)
                 rear_mode = 1;
-            if (pad_data[i].buttons & SCE_CTRL_VOLUP)
+            if (buttons & SCE_CTRL_VOLUP)
                 rear_mode = 0;
+
+            /* Consume the physical volume buttons after using them as mode
+             * switches, so SceShell/apps no longer receive the volume input.
+             */
+            pad_data[i].buttons &= ~(SCE_CTRL_VOLUP | SCE_CTRL_VOLDOWN);
 
             if (rear_mode)
                 pad_data[i].buttons |= MODE_REAR_MARKER;
