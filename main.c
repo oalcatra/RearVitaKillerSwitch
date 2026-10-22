@@ -9,12 +9,18 @@ static volatile int rear_mode = 0;
 int sceTouchRead2(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
 int sceTouchPeek2(SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs);
 
-static void poll_mode_buttons(void) {
+/* The kernel companion marks its current mode with L3/R3 in Positive2 data.
+ * PCH-1000 has no physical L3/R3, so these are safe bridge bits for this test.
+ */
+static void poll_kernel_mode(void) {
     SceCtrlData pad;
-    int ret = sceCtrlPeekBufferPositiveExt(0, &pad, 1);
-    if (ret < 1) return;
-    if (pad.buttons & SCE_CTRL_VOLDOWN) rear_mode = 1;
-    if (pad.buttons & SCE_CTRL_VOLUP) rear_mode = 0;
+    int ret = sceCtrlPeekBufferPositive2(0, &pad, 1);
+    if (ret < 1)
+        return;
+    if (pad.buttons & SCE_CTRL_L3)
+        rear_mode = 1;
+    if (pad.buttons & SCE_CTRL_R3)
+        rear_mode = 0;
 }
 
 static void clear_touch(SceTouchData *pData, SceUInt32 nBufs) {
@@ -43,7 +49,7 @@ static void copy_front_as_rear(SceTouchData *dst, const SceTouchData *src, SceUI
 }
 
 static int touch_patched_common(int ref_index, SceUInt32 port, SceTouchData *pData, SceUInt32 nBufs) {
-    poll_mode_buttons();
+    poll_kernel_mode();
 
     if (port == SCE_TOUCH_PORT_BACK) {
         if (!rear_mode) {
