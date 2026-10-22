@@ -6,3 +6,8 @@ RearVitaKillerSwitchKernel:
   main:
     start: module_start
     stop: module_stop
+  modules:
+    RearVitaKillerSwitchKernel:
+      syscall: true
+      functions:
+        - rearVitaGetMode
