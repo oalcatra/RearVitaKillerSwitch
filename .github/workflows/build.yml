@@ -1,0 +1,38 @@
+name: Build RearVitaKillerSwitch
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: vitasdk/vitasdk:latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Configure
+        run: cmake -S . -B build -DCMAKE_TOOLCHAIN_FILE=$VITASDK/share/vita.toolchain.cmake
+
+      - name: Build
+        run: cmake --build build --parallel
+
+      - name: Collect plugin
+        run: |
+          mkdir -p dist
+          find build -type f -name '*.suprx' -exec cp {} dist/ \;
+          test -n "$(find dist -type f -name '*.suprx' -print -quit)"
+
+      - name: Upload plugin
+        uses: actions/upload-artifact@v4
+        with:
+          name: RearVitaKillerSwitch
+          path: dist/*.suprx
+          if-no-files-found: error
