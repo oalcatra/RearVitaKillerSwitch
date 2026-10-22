@@ -1,6 +1,5 @@
 #include <vitasdk.h>
 #include <taihen.h>
-#include <string.h>
 
 static tai_hook_ref_t refs[4];
 static SceUID hooks[4] = {-1, -1, -1, -1};
@@ -24,7 +23,10 @@ static void front_to_rear(SceTouchData *pData, SceUInt32 nBufs, int use_peek) {
         return;
 
     SceTouchData front[nBufs];
-    memset(front, 0, sizeof(front));
+
+    /* Avoid libc: initialize only what is needed before the touch call. */
+    for (SceUInt32 i = 0; i < nBufs; i++)
+        front[i].reportNum = 0;
 
     int ret;
     if (use_peek)
@@ -39,6 +41,7 @@ static void front_to_rear(SceTouchData *pData, SceUInt32 nBufs, int use_peek) {
     }
 
     for (SceUInt32 i = 0; i < nBufs; i++) {
+        /* Struct assignment lets GCC copy the data without calling memcpy. */
         pData[i] = front[i];
 
         for (SceUInt32 j = 0; j < pData[i].reportNum; j++) {
